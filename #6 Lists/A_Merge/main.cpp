@@ -55,14 +55,6 @@ List::List() {
 }
 
 List::~List() {
-    Node* next = head->next;
-
-    while (next != nullptr) {
-        delete head;
-        head = next;
-        next = next->next;
-    }
-
     delete head;
 }
 

@@ -36,47 +36,11 @@ public:
         return list;
     }
 
-    static List merge(List* first, List* second) {
-        Node* current_node_from_first = first->head->next;
-        Node* current_node_from_second = second->head->next;
-
-        List result;
-
-        Node* last_node = result.head;
-
-        while (current_node_from_first != nullptr || current_node_from_second != nullptr) {
-            if (current_node_from_first != nullptr && current_node_from_second == nullptr) {
-                last_node = (last_node->next = current_node_from_first);
-                current_node_from_first = current_node_from_first->next;
-            } else if (current_node_from_first == nullptr && current_node_from_second != nullptr) {
-                last_node = (last_node->next = current_node_from_second);
-                current_node_from_second = current_node_from_second->next;
-            } else {
-                if (current_node_from_first->data <= current_node_from_second->data) {
-                    last_node = (last_node->next = current_node_from_first);
-                    current_node_from_first = current_node_from_first->next;
-                } else {
-                    last_node = (last_node->next = current_node_from_second);
-                    current_node_from_second = current_node_from_second->next;
-                }
-            }
-        }
-
-        return result;
-    }
-
+    void mergeWith(List* other);
     List();
     ~List();
 
-    static void printList(List const& list) {
-        Node* previous = list.head;
-
-        while (previous->next != nullptr) {
-            int output = ((previous->next)->data);
-            std::cout << output << ' ';
-            previous = previous->next;
-        }
-    }
+    void printList();
 };
 
 List::List() {
@@ -85,6 +49,43 @@ List::List() {
 
 List::~List() {
     delete head;
+}
+
+void List::mergeWith(List* other) {
+    Node* current_node_from_first = head->next;
+    Node* current_node_from_second = other->head->next;
+
+    Node* last_node = head;
+
+    while (current_node_from_first != nullptr || current_node_from_second != nullptr) {
+        if (current_node_from_first != nullptr && current_node_from_second == nullptr) {
+            last_node = (last_node->next = current_node_from_first);
+            current_node_from_first = current_node_from_first->next;
+        } else if (current_node_from_first == nullptr) {
+            last_node = (last_node->next = current_node_from_second);
+            current_node_from_second = current_node_from_second->next;
+        } else {
+            if (current_node_from_first->data <= current_node_from_second->data) {
+                last_node = (last_node->next = current_node_from_first);
+                current_node_from_first = current_node_from_first->next;
+            } else {
+                last_node = (last_node->next = current_node_from_second);
+                current_node_from_second = current_node_from_second->next;
+            }
+        }
+    }
+
+    other->head->next = nullptr;
+}
+
+void List::printList() {
+    Node* previous = head;
+
+    while (previous->next != nullptr) {
+        int output = ((previous->next)->data);
+        std::cout << output << ' ';
+        previous = previous->next;
+    }
 }
 
 int main() {
@@ -99,9 +100,9 @@ int main() {
     auto first = List::createFilledList(length_of_first_list);
     auto second = List::createFilledList(length_of_second_list);
 
-    auto merged = List::merge(&first, &second);
+    first.mergeWith(&second);
 
-    List::printList(merged);
+    first.printList();
 
     return 0;
 }

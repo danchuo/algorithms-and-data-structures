@@ -5,7 +5,7 @@ public:
     Node* next;
     int data;
 
-    Node(int data);
+    explicit Node(int data);
     ~Node();
 };
 
@@ -58,20 +58,14 @@ void List::mergeWith(List* other) {
     Node* last_node = head;
 
     while (current_node_from_first != nullptr || current_node_from_second != nullptr) {
-        if (current_node_from_first != nullptr && current_node_from_second == nullptr) {
+        if (((current_node_from_first != nullptr) && (current_node_from_second == nullptr)) ||
+            ((current_node_from_first != nullptr) &&
+             (current_node_from_first->data <= current_node_from_second->data))) {
             last_node = (last_node->next = current_node_from_first);
             current_node_from_first = current_node_from_first->next;
-        } else if (current_node_from_first == nullptr) {
+        } else {
             last_node = (last_node->next = current_node_from_second);
             current_node_from_second = current_node_from_second->next;
-        } else {
-            if (current_node_from_first->data <= current_node_from_second->data) {
-                last_node = (last_node->next = current_node_from_first);
-                current_node_from_first = current_node_from_first->next;
-            } else {
-                last_node = (last_node->next = current_node_from_second);
-                current_node_from_second = current_node_from_second->next;
-            }
         }
     }
 

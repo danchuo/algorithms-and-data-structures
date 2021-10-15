@@ -152,9 +152,6 @@ int main() {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-
     int length_of_list;
     int number_of_commands;
 

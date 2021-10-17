@@ -231,7 +231,6 @@ void UnrolledList::erase(int position) {
     if ((index == 0) && (current_node->number_of_elements == 1) && (previous_node != nullptr)) {
         previous_node->next = current_node->next;
         current_node->next = nullptr;
-
         delete current_node;
     } else {
         for (int i = index; i < current_node->number_of_elements - 1; ++i) {

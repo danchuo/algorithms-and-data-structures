@@ -79,7 +79,14 @@ UnrolledList::~UnrolledList() {
 }
 
 int UnrolledList::moduloAddition(int left, int right) {
-    int64_t result = ((left + right) % mod_by);
+    if (left < 0) {
+        left = (left % mod_by) + mod_by;
+    }
+    if (right < 0) {
+        right = (right % mod_by) + mod_by;
+    }
+
+    int64_t result = (((left % mod_by) + (right % mod_by)) % mod_by);
     return static_cast<int>(result);
 }
 
@@ -124,7 +131,8 @@ int UnrolledList::compute(int const left, int const right) {
             current_node = current_node->next;
             index_of_element_in_current_array = 0;
         } else {
-            result = doOperation(result, current_node->array[index_of_element_in_current_array]);
+            result =
+                doOperation(result, ((current_node->array)[index_of_element_in_current_array]));
             if (index_of_element_in_current_array + 1 == current_node->number_of_elements) {
                 current_node = current_node->next;
                 index_of_element_in_current_array = 0;
@@ -290,7 +298,7 @@ int main() {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(nullptr);
     int number_of_commands;
-    // why wa15 I'm crying
+    // why wa15 I'm ....
 
     UnrolledList list = UnrolledList::initiateList();
 

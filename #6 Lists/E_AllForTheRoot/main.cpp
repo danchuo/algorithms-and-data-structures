@@ -3,7 +3,7 @@
 
 class SpecialNode {
 public:
-    static const size_t kArraySize = 10;
+    static const size_t kArraySize = 1000;
     SpecialNode *next;
     int number_of_elements;
     int result_of_operation;
@@ -99,9 +99,9 @@ int UnrolledList::at(int const position) {
 int UnrolledList::compute(int const left, int const right) {
     if (left == right) {
         if (operation == '+') {
-            return (at(left - 1) % mod_by);
+            return (at(left) % mod_by);
         } else {
-            return at(left - 1);
+            return at(left);
         }
     }
 
@@ -148,10 +148,15 @@ int UnrolledList::doOperation(int left, int right) {
 
 int UnrolledList::undoOperation(int result, int minus_element) {
     if (operation == '+') {
-        if (minus_element > 0) {
-            return (result - (minus_element % mod_by));
+        if (result < minus_element) {
+            int64_t answer = (result + mod_by) - minus_element;
+            return static_cast<int>(answer % mod_by);
         } else {
-            return (result + (minus_element % mod_by));
+            if (minus_element > 0) {
+                return (result - (minus_element % mod_by));
+            } else {
+                return (result + (minus_element % mod_by));
+            }
         }
     } else {
         return (result ^ minus_element);
@@ -237,7 +242,7 @@ void UnrolledList::erase(int position) {
 
     int index = position - number_of_past_elements - 1;
 
-    if ((index == 0) && (current_node->number_of_elements == 1)) {
+    if ((index == 0) && (current_node->number_of_elements == 1) && (previous_node != nullptr)) {
         previous_node->next = current_node->next;
         current_node->next = nullptr;
 
@@ -262,26 +267,22 @@ void processCommands(UnrolledList *list, int const number_of_commands) {
 
     for (int i = 0; i < number_of_commands; ++i) {
         std::getline(std::cin, command);
-        first_number = std::stoi(command.substr(command.find_first_of(' ') + 1));
+        if (command[1] != 'i') {
+            first_number = std::stoi(command.substr(command.find_first_of(' ') + 1));
+        }
         switch (command[1]) {
             case 'n': {
                 second_number = std::stoi(command.substr(command.find_last_of(' ') + 1));
                 list->insert(first_number, second_number);
-                // std::cout << command << " printing list :\n";
-                // list->printList();
                 break;
             }
             case 'r': {
                 list->erase(first_number);
-                // std::cout << command << " printing list :\n";
-                // list->printList();
                 break;
             }
             case 'h': {
                 second_number = std::stoi(command.substr(command.find_last_of(' ') + 1));
                 list->change(first_number, second_number);
-                // std::cout << command << " printing list :\n";
-                // list->printList();
                 break;
             }
             case 't': {
@@ -298,20 +299,6 @@ void processCommands(UnrolledList *list, int const number_of_commands) {
                 break;
             }
         }
-    }
-
-    std::cout << '\n';
-    list->printList();
-}
-
-void UnrolledList::printList() {
-    SpecialNode *current_node = head;
-    while (current_node != nullptr) {
-        for (int i = 0; i < current_node->number_of_elements; ++i) {
-            std::cout << (current_node->array)[i] << ' ';
-        }
-        std::cout << '\n';
-        current_node = current_node->next;
     }
 }
 

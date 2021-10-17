@@ -238,6 +238,7 @@ void UnrolledList::insert(int position, int value) {
 
 void UnrolledList::erase(int position) {
     int number_of_past_elements = 0;
+
     SpecialNode *current_node = head;
     SpecialNode *previous_node = nullptr;
 

@@ -3,7 +3,7 @@
 
 class SpecialNode {
 public:
-    static const size_t kArraySize = 1000;
+    static const size_t kArraySize = 1400;
     SpecialNode *next;
     int number_of_elements;
     int result_of_operation;
@@ -32,6 +32,7 @@ public:
     char operation;
     int mod_by;
 
+    int getOperationResult(SpecialNode *node);
     void insert(int position, int value);
     void erase(int position);
     void change(int position, int value);
@@ -39,7 +40,6 @@ public:
     int compute(int left, int right);
     int moduloAddition(int left, int right);
     int doOperation(int left, int right);
-    int undoOperation(int result, int minus_element);
 
     static UnrolledList initiateList() {
         char input_operation;
@@ -79,8 +79,8 @@ UnrolledList::~UnrolledList() {
 }
 
 int UnrolledList::moduloAddition(int left, int right) {
-    int64_t result = ((left % mod_by) + (right % mod_by));
-    return static_cast<int>(result % mod_by);
+    int64_t result = ((left + right) % mod_by);
+    return static_cast<int>(result);
 }
 
 int UnrolledList::at(int const position) {
@@ -145,29 +145,6 @@ int UnrolledList::doOperation(int left, int right) {
     }
 }
 
-int UnrolledList::undoOperation(int result, int minus_element) {
-    if (operation == '+') {
-        minus_element %= mod_by;
-        if (std::abs(result) < std::abs(minus_element)) {
-            int64_t answer;
-            if (result > 0) {
-                answer = (result + mod_by) - minus_element;
-            } else {
-                answer = ((result - mod_by - minus_element) % mod_by);
-            }
-            return static_cast<int>(answer % mod_by);
-        } else {
-            if (result > 0) {
-                return (result - (minus_element));
-            } else {
-                return ((result - mod_by - minus_element) % mod_by);
-            }
-        }
-    } else {
-        return (result ^ minus_element);
-    }
-}
-
 void UnrolledList::change(int position, int value) {
     int number_of_past_elements = 0;
     SpecialNode *current_node = head;
@@ -177,12 +154,9 @@ void UnrolledList::change(int position, int value) {
         current_node = current_node->next;
     }
 
-    int result = undoOperation(current_node->result_of_operation,
-                               current_node->array[(position - number_of_past_elements) - 1]);
-
     current_node->array[(position - number_of_past_elements) - 1] = value;
 
-    current_node->result_of_operation = doOperation(result, value);
+    current_node->result_of_operation = getOperationResult(current_node);
 }
 void UnrolledList::insert(int position, int value) {
     int number_of_past_elements = 0;
@@ -212,8 +186,8 @@ void UnrolledList::insert(int position, int value) {
         }
 
         (current_node->array)[index_of_element_in_current_array] = value;
-        current_node->result_of_operation = doOperation(current_node->result_of_operation, value);
         current_node->number_of_elements += 1;
+        current_node->result_of_operation = doOperation(current_node->result_of_operation, value);
         ++size;
     } else {
         SpecialNode *new_node = new SpecialNode();
@@ -223,15 +197,11 @@ void UnrolledList::insert(int position, int value) {
         for (int i = 0; i < current_node->kArraySize / 2; ++i) {
             (new_node->array)[i] = (current_node->array)[i + current_node->kArraySize / 2];
             current_node->number_of_elements -= 1;
-            current_node->result_of_operation =
-                undoOperation(current_node->result_of_operation,
-                              (current_node->array)[i + current_node->kArraySize / 2]);
-
             new_node->number_of_elements += 1;
-            new_node->result_of_operation =
-                doOperation(new_node->result_of_operation, (new_node->array)[i]);
         }
 
+        current_node->result_of_operation = getOperationResult(current_node);
+        new_node->result_of_operation = getOperationResult(new_node);
         insert(position, value);
     }
 }
@@ -255,15 +225,22 @@ void UnrolledList::erase(int position) {
 
         delete current_node;
     } else {
-        current_node->result_of_operation =
-            undoOperation(current_node->result_of_operation, (current_node->array)[index]);
-
         for (int i = index; i < current_node->number_of_elements - 1; ++i) {
             (current_node->array)[i] = (current_node->array)[i + 1];
         }
         current_node->number_of_elements -= 1;
+        current_node->result_of_operation = getOperationResult(current_node);
     }
     --size;
+}
+int UnrolledList::getOperationResult(SpecialNode *node) {
+    int result = 0;
+
+    for (int i = 0; i < node->number_of_elements; ++i) {
+        result = doOperation(result, (node->array)[i]);
+    }
+
+    return result;
 }
 
 void processCommands(UnrolledList *list, int const number_of_commands) {
@@ -313,6 +290,7 @@ int main() {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(nullptr);
     int number_of_commands;
+    // why wa15 I'm crying
 
     UnrolledList list = UnrolledList::initiateList();
 

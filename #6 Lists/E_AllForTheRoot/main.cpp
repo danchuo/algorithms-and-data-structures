@@ -3,7 +3,7 @@
 
 class SpecialNode {
 public:
-    static const size_t kArraySize = 1000;
+    static const size_t kArraySize = 10;
     SpecialNode *next;
     int number_of_elements;
     int result_of_operation;
@@ -32,6 +32,7 @@ public:
     char operation;
     int mod_by;
 
+    void printList();
     void insert(int position, int value);
     void erase(int position);
     void change(int position, int value);
@@ -88,7 +89,7 @@ int UnrolledList::at(int const position) {
     SpecialNode *current_node = head;
 
     while (position - number_of_past_elements > current_node->number_of_elements) {
-        number_of_past_elements += head->number_of_elements;
+        number_of_past_elements += current_node->number_of_elements;
         current_node = current_node->next;
     }
 
@@ -108,7 +109,7 @@ int UnrolledList::compute(int const left, int const right) {
     SpecialNode *current_node = head;
 
     while (left - number_of_past_elements > current_node->number_of_elements) {
-        number_of_past_elements += head->number_of_elements;
+        number_of_past_elements += current_node->number_of_elements;
         current_node = current_node->next;
     }
 
@@ -162,7 +163,7 @@ void UnrolledList::change(int position, int value) {
     SpecialNode *current_node = head;
 
     while (position - number_of_past_elements > current_node->number_of_elements) {
-        number_of_past_elements += head->number_of_elements;
+        number_of_past_elements += current_node->number_of_elements;
         current_node = current_node->next;
     }
 
@@ -179,12 +180,12 @@ void UnrolledList::insert(int position, int value) {
 
     if (size + 1 != position) {
         while (position - number_of_past_elements > current_node->number_of_elements) {
-            number_of_past_elements += head->number_of_elements;
+            number_of_past_elements += current_node->number_of_elements;
             current_node = current_node->next;
         }
     } else {
         while (position - number_of_past_elements - 1 > current_node->number_of_elements) {
-            number_of_past_elements += head->number_of_elements;
+            number_of_past_elements += current_node->number_of_elements;
             current_node = current_node->next;
         }
     }
@@ -229,7 +230,7 @@ void UnrolledList::erase(int position) {
     SpecialNode *previous_node = nullptr;
 
     while (position - number_of_past_elements > current_node->number_of_elements) {
-        number_of_past_elements += head->number_of_elements;
+        number_of_past_elements += current_node->number_of_elements;
         previous_node = current_node;
         current_node = current_node->next;
     }
@@ -244,11 +245,11 @@ void UnrolledList::erase(int position) {
     } else {
         current_node->result_of_operation =
             undoOperation(current_node->result_of_operation, (current_node->array)[index]);
-        current_node->number_of_elements -= 1;
 
-        for (int i = index; i <= current_node->number_of_elements - index; ++i) {
-            (current_node->array)[index] = (current_node->array)[index + 1];
+        for (int i = index; i < current_node->number_of_elements - 1; ++i) {
+            (current_node->array)[i] = (current_node->array)[i + 1];
         }
+        current_node->number_of_elements -= 1;
     }
     --size;
 }
@@ -266,15 +267,21 @@ void processCommands(UnrolledList *list, int const number_of_commands) {
             case 'n': {
                 second_number = std::stoi(command.substr(command.find_last_of(' ') + 1));
                 list->insert(first_number, second_number);
+                // std::cout << command << " printing list :\n";
+                // list->printList();
                 break;
             }
             case 'r': {
                 list->erase(first_number);
+                // std::cout << command << " printing list :\n";
+                // list->printList();
                 break;
             }
             case 'h': {
                 second_number = std::stoi(command.substr(command.find_last_of(' ') + 1));
                 list->change(first_number, second_number);
+                // std::cout << command << " printing list :\n";
+                // list->printList();
                 break;
             }
             case 't': {
@@ -291,6 +298,20 @@ void processCommands(UnrolledList *list, int const number_of_commands) {
                 break;
             }
         }
+    }
+
+    std::cout << '\n';
+    list->printList();
+}
+
+void UnrolledList::printList() {
+    SpecialNode *current_node = head;
+    while (current_node != nullptr) {
+        for (int i = 0; i < current_node->number_of_elements; ++i) {
+            std::cout << (current_node->array)[i] << ' ';
+        }
+        std::cout << '\n';
+        current_node = current_node->next;
     }
 }
 

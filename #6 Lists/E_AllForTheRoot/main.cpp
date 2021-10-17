@@ -147,14 +147,20 @@ int UnrolledList::doOperation(int left, int right) {
 
 int UnrolledList::undoOperation(int result, int minus_element) {
     if (operation == '+') {
-        if (result > 0 && result < minus_element) {
-            int64_t answer = (result + mod_by) - minus_element;
+        minus_element %= mod_by;
+        if (std::abs(result) < std::abs(minus_element)) {
+            int64_t answer;
+            if (result > 0) {
+                answer = (result + mod_by) - minus_element;
+            } else {
+                answer = ((result - mod_by - minus_element) % mod_by);
+            }
             return static_cast<int>(answer % mod_by);
         } else {
-            if (minus_element > 0) {
-                return (result - (minus_element % mod_by));
+            if (result > 0) {
+                return (result - (minus_element));
             } else {
-                return ((result - mod_by - (minus_element % mod_by)) % mod_by);
+                return ((result - mod_by - minus_element) % mod_by);
             }
         }
     } else {

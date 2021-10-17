@@ -32,7 +32,6 @@ public:
     char operation;
     int mod_by;
 
-    void printList();
     void insert(int position, int value);
     void erase(int position);
     void change(int position, int value);
@@ -148,14 +147,14 @@ int UnrolledList::doOperation(int left, int right) {
 
 int UnrolledList::undoOperation(int result, int minus_element) {
     if (operation == '+') {
-        if (result < minus_element) {
+        if (result > 0 && result < minus_element) {
             int64_t answer = (result + mod_by) - minus_element;
             return static_cast<int>(answer % mod_by);
         } else {
             if (minus_element > 0) {
                 return (result - (minus_element % mod_by));
             } else {
-                return (result + (minus_element % mod_by));
+                return ((result - mod_by - (minus_element % mod_by)) % mod_by);
             }
         }
     } else {
@@ -196,6 +195,8 @@ void UnrolledList::insert(int position, int value) {
     }
 
     int index_of_element_in_current_array = position - number_of_past_elements - 1;
+
+    // if current index == 0 we can insert in previous node
 
     if (current_node->number_of_elements < SpecialNode::kArraySize) {
         for (int i = 0; i < current_node->number_of_elements - index_of_element_in_current_array;

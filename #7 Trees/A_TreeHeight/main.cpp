@@ -44,7 +44,7 @@ void TreeInt::push(int input_data) {
 }
 void TreeInt::getHeight(int current_height, int *max) {
     if (left != nullptr) {
-        return left->getHeight(current_height + 1, max);
+        left->getHeight(current_height + 1, max);
     } else {
         if (current_height > (*max)) {
             (*max) = current_height;
@@ -52,7 +52,7 @@ void TreeInt::getHeight(int current_height, int *max) {
     }
 
     if (right != nullptr) {
-        return right->getHeight(current_height + 1, max);
+        right->getHeight(current_height + 1, max);
     } else {
         if (current_height > (*max)) {
             (*max) = current_height;
@@ -83,8 +83,8 @@ int main() {
 
     TreeInt *tree_int = TreeInt::createTreeFromInput();
 
-    int max = 0;
     if (tree_int != nullptr) {
+        int max = 0;
         tree_int->getHeight(1, &max);
         std::cout << max;
     } else {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(_TreeTraversal)
+project(D_LeavesOutput)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -7,4 +7,4 @@ set(CMAKE_CXX_FLAGS_ASAN "-g -fsanitize=address,undefined -fno-sanitize-recover=
         CACHE STRING "Compiler flags in asan build"
         FORCE)
 
-add_executable(_TreeTraversal main.cpp)
+add_executable(D_LeavesOutput main.cpp)

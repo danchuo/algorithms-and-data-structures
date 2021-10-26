@@ -10,7 +10,7 @@ public:
 
     void push(int input_data);
 
-    void inOrder(TreeInt *root);
+    void postOrder(TreeInt *root);
 
     static TreeInt *createTreeFromInput();
 };
@@ -61,11 +61,13 @@ TreeInt *TreeInt::createTreeFromInput() {
     return tree_int;
 }
 
-void TreeInt::inOrder(TreeInt *root) {
+void TreeInt::postOrder(TreeInt *root) {
     if (root) {
-        inOrder(root->left);
-        std::cout << root->data << '\n';
-        inOrder(root->right);
+        postOrder(root->left);
+        postOrder(root->right);
+        if (root->left == nullptr && root->right == nullptr) {
+            std::cout << root->data << '\n';
+        }
     }
 }
 
@@ -76,10 +78,9 @@ int main() {
     TreeInt *tree_int = TreeInt::createTreeFromInput();
 
     if (tree_int != nullptr) {
-        tree_int->inOrder(tree_int);
+        tree_int->postOrder(tree_int);
     }
 
     delete tree_int;
-
     return 0;
 }

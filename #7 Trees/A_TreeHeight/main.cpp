@@ -9,7 +9,9 @@ public:
     ~TreeInt();
 
     void push(int input_data);
-    void getHeight(int current_height, int *max);
+    void countHeight(int current_height, int *max);
+
+    static int getHeight(TreeInt *tree_int);
 
     static TreeInt *createTreeFromInput();
 };
@@ -42,9 +44,9 @@ void TreeInt::push(int input_data) {
         }
     }
 }
-void TreeInt::getHeight(int current_height, int *max) {
+void TreeInt::countHeight(int current_height, int *max) {
     if (left != nullptr) {
-        left->getHeight(current_height + 1, max);
+        left->countHeight(current_height + 1, max);
     } else {
         if (current_height > (*max)) {
             (*max) = current_height;
@@ -52,7 +54,7 @@ void TreeInt::getHeight(int current_height, int *max) {
     }
 
     if (right != nullptr) {
-        right->getHeight(current_height + 1, max);
+        right->countHeight(current_height + 1, max);
     } else {
         if (current_height > (*max)) {
             (*max) = current_height;
@@ -77,19 +79,23 @@ TreeInt *TreeInt::createTreeFromInput() {
     return tree_int;
 }
 
+int TreeInt::getHeight(TreeInt *tree_int) {
+    if (tree_int != nullptr) {
+        int max = 0;
+        tree_int->countHeight(1, &max);
+        return max;
+    } else {
+        return 0;
+    }
+}
+
 int main() {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
     TreeInt *tree_int = TreeInt::createTreeFromInput();
 
-    if (tree_int != nullptr) {
-        int max = 0;
-        tree_int->getHeight(1, &max);
-        std::cout << max;
-    } else {
-        std::cout << 0;
-    }
+    std::cout << TreeInt::getHeight(tree_int);
 
     delete tree_int;
 

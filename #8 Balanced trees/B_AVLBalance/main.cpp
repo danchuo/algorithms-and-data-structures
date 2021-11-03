@@ -15,7 +15,7 @@ public:
 
     static TreeInt *createTreeFromInput();
 
-    int getHeight();
+    static int getHeight(TreeInt *tree_int, int *height);
 };
 
 TreeInt::TreeInt(int data) {
@@ -66,7 +66,7 @@ TreeInt *TreeInt::createTreeFromInput() {
 std::string TreeInt::isBalanced() {
     int height;
     try {
-        height = getHeight();
+        getHeight(this, &height);
     } catch (...) {
         return "NO";
     }
@@ -77,26 +77,17 @@ std::string TreeInt::isBalanced() {
 
     return "YES";
 }
-int TreeInt::getHeight() {
-    if (left == nullptr && right == nullptr) {
+int TreeInt::getHeight(TreeInt *tree_int, int *height) {
+    if (tree_int == nullptr) {
         return 0;
     }
+    *height = getHeight(tree_int->left, height) - getHeight(tree_int->right, height);
 
-    if (left == nullptr && right != nullptr) {
-        return right->getHeight() + 1;
-    }
-
-    if (left != nullptr && right == nullptr) {
-        return left->getHeight() + 1;
-    }
-
-    int height = left->getHeight() - right->getHeight();
-
-    if (abs(height) > 1) {
+    if (abs(*height) > 1) {
         throw "NO";
     }
 
-    return height + 1;
+    return abs(*height) + 1;
 }
 
 int main() {

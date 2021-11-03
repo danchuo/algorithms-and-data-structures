@@ -81,13 +81,16 @@ int TreeInt::getHeight(TreeInt *tree_int, int *height) {
     if (tree_int == nullptr) {
         return 0;
     }
-    *height = getHeight(tree_int->left, height) - getHeight(tree_int->right, height);
+    int left_tree = getHeight(tree_int->left, height);
+    int right_tree = getHeight(tree_int->right, height);
+
+    *height = left_tree - right_tree;
 
     if (abs(*height) > 1) {
         throw "NO";
     }
 
-    return abs(*height) + 1;
+    return (left_tree > right_tree ? left_tree : right_tree) + 1;
 }
 
 int main() {

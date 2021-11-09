@@ -18,6 +18,8 @@ public:
 private:
     static TreeInt *parseNode();
     bool tryAddNode(TreeInt *node, bool is_parent_red);
+    bool isBalanced();
+    int getHeight(TreeInt *tree_int, int *height);
 };
 
 TreeInt::TreeInt() {
@@ -50,12 +52,7 @@ bool TreeInt::isRBTreeCorrect(int tree_size) {
     }
 
     if (is_rb_tree_correct) {
-        int max = -1;
-        try {
-            tree_int->countHeight(0, &max);
-        } catch (...) {
-            is_rb_tree_correct = false;
-        }
+        is_rb_tree_correct = tree_int->isBalanced();
     }
 
     delete tree_int;
@@ -125,30 +122,34 @@ bool TreeInt::tryAddNode(TreeInt *node, bool is_parent_red) {
     return false;
 }
 
-void TreeInt::countHeight(int current_height, int *max) {
-    if (left != nullptr) {
-        left->countHeight(current_height + (is_red ? 0 : 1), max);
-    } else {
-        if (*max == -1) {
-            (*max) = current_height + (is_red ? 0 : 1);
-        } else {
-            if (current_height + (is_red ? 0 : 1) != *max) {
-                throw "no";
-            }
-        }
+bool TreeInt::isBalanced() {
+    int height;
+    try {
+        getHeight(this, &height);
+    } catch (...) {
+        return false;
     }
 
-    if (right != nullptr) {
-        right->countHeight(current_height + (is_red ? 0 : 1), max);
-    } else {
-        if (*max == -1) {
-            (*max) = current_height + (is_red ? 0 : 1);
-        } else {
-            if (current_height + (is_red ? 0 : 1) != *max) {
-                throw "no";
-            }
-        }
+    if (abs(height) > 0) {
+        return false;
     }
+
+    return true;
+}
+int TreeInt::getHeight(TreeInt *tree_int, int *height) {
+    if (tree_int == nullptr) {
+        return 0;
+    }
+    int left_tree = getHeight(tree_int->left, height);
+    int right_tree = getHeight(tree_int->right, height);
+
+    *height = left_tree - right_tree;
+
+    if (abs(*height) > 0) {
+        throw "NO";
+    }
+
+    return (left_tree > right_tree ? left_tree : right_tree) + (is_red ? 0 : 1);
 }
 
 int main() {

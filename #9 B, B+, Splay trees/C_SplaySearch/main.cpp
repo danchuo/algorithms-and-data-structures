@@ -142,10 +142,10 @@ int SplayTree::splay(Node *node) {
                 zag(node->parent);
             } else {
                 if (node == node->parent->right) {
-                    zag(node);
+                    zag(node->parent);
                 } else {
                     if (node == node->parent->left) {
-                        zig(node);
+                        zig(node->parent);
                     }
                 }
             }

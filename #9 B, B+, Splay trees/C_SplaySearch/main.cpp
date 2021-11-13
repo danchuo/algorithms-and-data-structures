@@ -128,24 +128,32 @@ Node *SplayTree::find(int input_key) const {
     return current;
 }
 int SplayTree::splay(Node *node) {
+    if (node == nullptr) {
+        return 0;
+    }
+
     int number_of_turns = 0;
 
     while (node != head_) {
-        if (node == node->parent->right && node->parent->parent != nullptr &&
-            node->parent == node->parent->parent->left) {
-            zag(node->parent);
-            zig(node->parent);
+        if (node->parent == nullptr) {
+            return -1000;
         } else {
-            if (node == node->parent->left && node->parent->parent != nullptr &&
-                node->parent == node->parent->parent->right) {
-                zig(node->parent);
+            if (node == node->parent->right && node->parent->parent != nullptr &&
+                node->parent == node->parent->parent->left) {
                 zag(node->parent);
+                zig(node->parent);
             } else {
-                if (node == node->parent->right) {
+                if (node == node->parent->left && node->parent->parent != nullptr &&
+                    node->parent == node->parent->parent->right) {
+                    zig(node->parent);
                     zag(node->parent);
                 } else {
-                    if (node == node->parent->left) {
-                        zig(node->parent);
+                    if (node == node->parent->right) {
+                        zag(node->parent);
+                    } else {
+                        if (node == node->parent->left) {
+                            zig(node->parent);
+                        }
                     }
                 }
             }

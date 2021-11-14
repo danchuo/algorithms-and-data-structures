@@ -67,8 +67,12 @@ void SplayTree::countHeight(Node *current, int current_height, int *max) const {
     }
 }
 void SplayTree::insert(int input_key) {
-    Node *current = head_;
+    if (head_ == nullptr) {
+        head_ = new Node{input_key};
+        return;
+    }
 
+    Node *current = head_;
     while (current != nullptr) {
         if (input_key == current->key) {
             return;
@@ -94,10 +98,6 @@ void SplayTree::insert(int input_key) {
             }
         }
     }
-
-    if (head_ == nullptr) {
-        head_ = new Node{input_key};
-    }
 }
 Node *SplayTree::find(int input_key) const {
     Node *current = head_;
@@ -117,7 +117,6 @@ Node *SplayTree::find(int input_key) const {
                     if (current->right != nullptr) {
                         current = current->right;
                     } else {
-                        current->right = new Node{input_key};
                         current = nullptr;
                     }
                 }
@@ -133,32 +132,49 @@ int SplayTree::splay(Node *node) {
     }
 
     int number_of_turns = 0;
-
     while (node != head_) {
-        if (node->parent == nullptr) {
-            return -1000;
-        } else {
-            if (node == node->parent->right && node->parent->parent != nullptr &&
-                node->parent == node->parent->parent->left) {
-                zag(node->parent);
-                zig(node->parent);
-            } else {
-                if (node == node->parent->left && node->parent->parent != nullptr &&
-                    node->parent == node->parent->parent->right) {
-                    zig(node->parent);
-                    zag(node->parent);
-                } else {
-                    if (node == node->parent->right) {
-                        zag(node->parent);
-                    } else {
-                        if (node == node->parent->left) {
-                            zig(node->parent);
-                        }
-                    }
-                }
-            }
+        if (node == node->parent->left && node->parent->parent != nullptr &&
+            node->parent == node->parent->parent->right) {
+            zig(node->parent);
+            zag(node->parent);
+            ++number_of_turns;
+            continue;
         }
-        ++number_of_turns;
+
+        if (node == node->parent->right && node->parent->parent != nullptr &&
+            node->parent == node->parent->parent->left) {
+            zag(node->parent);
+            zig(node->parent);
+            ++number_of_turns;
+            continue;
+        }
+
+        if (node == node->parent->right && node->parent->parent != nullptr &&
+            node->parent == node->parent->parent->right) {
+            zag(node->parent->parent);
+            zag(node->parent);
+            number_of_turns += 2;
+            continue;
+        }
+
+        if (node == node->parent->left && node->parent->parent != nullptr &&
+            node->parent == node->parent->parent->left) {
+            zig(node->parent->parent);
+            zig(node->parent);
+            number_of_turns += 2;
+            continue;
+        }
+
+        if (node == node->parent->right) {
+            zag(node->parent);
+            ++number_of_turns;
+            continue;
+        }
+        if (node == node->parent->left) {
+            zig(node->parent);
+            ++number_of_turns;
+            continue;
+        }
     }
 
     return number_of_turns;
@@ -168,26 +184,28 @@ void SplayTree::zig(Node *node) {
         return;
     }
 
-    node->left->parent = node->parent;
-    node->parent = node->left;
+    Node *node_to_up = node->left;
 
-    if (node->parent->right != nullptr) {
-        node->left = node->parent->right;
+    node_to_up->parent = node->parent;
+    node->parent = node_to_up;
+
+    if (node_to_up->right != nullptr) {
+        node->left = node_to_up->right;
         node->left->parent = node;
     } else {
         node->left = nullptr;
     }
 
-    node->parent->right = node;
+    node_to_up->right = node;
 
-    if (node->parent->parent != nullptr) {
-        if (node->parent->parent->right == node) {
-            node->parent->parent->right = node->parent;
+    if (node_to_up->parent != nullptr) {
+        if (node_to_up->parent->right == node) {
+            node_to_up->parent->right = node_to_up;
         } else {
-            node->parent->parent->left = node->parent;
+            node_to_up->parent->left = node_to_up;
         }
     } else {
-        head_ = node->parent;
+        head_ = node_to_up;
     }
 }
 void SplayTree::zag(Node *node) {
@@ -195,25 +213,27 @@ void SplayTree::zag(Node *node) {
         return;
     }
 
-    node->right->parent = node->parent;
-    node->parent = node->right;
+    Node *node_to_up = node->right;
 
-    if (node->parent->left != nullptr) {
-        node->right = node->parent->left;
+    node_to_up->parent = node->parent;
+    node->parent = node_to_up;
+
+    if (node_to_up->left != nullptr) {
+        node->right = node_to_up->left;
         node->right->parent = node;
     } else {
         node->right = nullptr;
     }
 
-    node->parent->left = node;
+    node_to_up->left = node;
 
-    if (node->parent->parent != nullptr) {
-        if (node->parent->parent->right == node) {
-            node->parent->parent->right = node->parent;
+    if (node_to_up->parent != nullptr) {
+        if (node_to_up->parent->right == node) {
+            node_to_up->parent->right = node_to_up;
         } else {
-            node->parent->parent->left = node->parent;
+            node_to_up->parent->left = node_to_up;
         }
     } else {
-        head_ = node->parent;
+        head_ = node_to_up;
     }
 }

@@ -2,27 +2,33 @@
 
 class Node {
 public:
-    int *keys;
+    explicit Node(int);
+    ~Node();
+
     Node **children;
     int size;
-    Node(int);
-    ~Node();
+    int *keys;
+    int degree;
+
+    void splitNode();
 
     bool isLeaf();
 
-    int getMaxKey();
-    int getMinKey();
-    void pushKey(int input_key, int max_keys_number);
-    void splitNode(int);
+    void pushKey(int);
+
+    size_t getSize() const;
+
+    int64_t getSum();
 };
 Node::~Node() {
     delete[] keys;
-    if (children != nullptr) {
-        delete[] (*children);
+    for (int i = 0; i < 2 * degree; ++i) {
+        delete children[i];
     }
-    delete children;
+    delete[] children;
 }
 Node::Node(int degree) {
+    this->degree = degree;
     size = 0;
     keys = new int[2 * degree - 1];
     children = new Node *[2 * degree];
@@ -30,14 +36,8 @@ Node::Node(int degree) {
         children[i] = nullptr;
     }
 }
-int Node::getMaxKey() {
-    return keys[size - 1];
-}
-int Node::getMinKey() {
-    return keys[0];
-}
-void Node::pushKey(int input_key, int max_keys_number) {
-    if (size < max_keys_number) {
+void Node::pushKey(int input_key) {
+    if (size < 2 * degree - 1) {
         for (int i = 0; i < size; ++i) {
             if (keys[i] == input_key) {
                 return;
@@ -58,26 +58,26 @@ void Node::pushKey(int input_key, int max_keys_number) {
         ++size;
     }
 }
-void Node::splitNode(int degree) {
-    Node *y1 = new Node(2 * degree - 1);
-    Node *y2 = new Node(2 * degree - 1);
+void Node::splitNode() {
+    Node *left_node = new Node(2 * degree - 1);
+    Node *right_node = new Node(2 * degree - 1);
 
     for (int i = 0; i < degree - 1; ++i) {
-        y1->keys[i] = keys[i];
-        ++(y1->size);
+        left_node->keys[i] = keys[i];
+        ++(left_node->size);
     }
 
     for (int i = 0; i < degree; ++i) {
-        (y1->children)[i] = children[i];
+        (left_node->children)[i] = children[i];
     }
 
     for (int i = 0; i < degree - 1; ++i) {
-        y2->keys[i] = keys[i + degree];
-        ++(y2->size);
+        right_node->keys[i] = keys[i + degree];
+        ++(right_node->size);
     }
 
     for (int i = 0; i < degree; ++i) {
-        (y2->children)[i] = children[i + degree];
+        (right_node->children)[i] = children[i + degree];
     }
 
     keys[0] = keys[degree - 1];
@@ -87,11 +87,39 @@ void Node::splitNode(int degree) {
         children[i] = nullptr;
     }
 
-    children[0] = y1;
-    children[1] = y2;
+    children[0] = left_node;
+    children[1] = right_node;
 }
 bool Node::isLeaf() {
     return children[0] == nullptr;
+}
+size_t Node::getSize() const {
+    size_t current_size = 0;
+
+    for (int i = 0; i < 2 * degree; ++i) {
+        if (children[i] != nullptr) {
+            ++current_size;
+            current_size += children[i]->getSize();
+        }
+    }
+    return current_size;
+}
+int64_t Node::getSum() {
+    int64_t current_sum = 0;
+
+    if (isLeaf()) {
+        for (int j = 0; j < size; ++j) {
+            current_sum += keys[j];
+        }
+    } else {
+        for (int i = 0; i < 2 * degree; ++i) {
+            if (children[i] != nullptr) {
+                current_sum += children[i]->getSum();
+            }
+        }
+    }
+
+    return current_sum;
 }
 
 class BTree {
@@ -123,17 +151,17 @@ void BTree::insert(int input_key) {
 
     while (current != nullptr) {
         if (!current->isLeaf()) {
-            int numberOfChild = 0;
+            int number_of_child = 0;
 
-            while (numberOfChild < 2 * degree_ && current->keys[numberOfChild] < input_key) {
-                ++numberOfChild;
+            while (number_of_child < current->size && current->keys[number_of_child] < input_key) {
+                ++number_of_child;
             }
 
-            current = current->children[numberOfChild];
+            current = current->children[number_of_child];
         } else {
-            current->pushKey(input_key, 2 * degree_ - 1);
+            current->pushKey(input_key);
             if (current->size == 2 * degree_ - 1) {
-                current->splitNode(degree_);
+                current->splitNode();
             }
             current = nullptr;
         }
@@ -141,22 +169,16 @@ void BTree::insert(int input_key) {
 
     if (head_ == nullptr) {
         head_ = new Node(degree_);
-        head_->pushKey(input_key, 2 * degree_ - 1);
+        head_->pushKey(input_key);
     } else {
         if (head_->size == 2 * degree_ - 1) {
-            head_->splitNode(degree_);
+            head_->splitNode();
         }
     }
 }
-
-int main() {
-    BTree *tree = new BTree(2);
-    tree->insert(1);
-    tree->insert(2);
-    tree->insert(3);
-    tree->insert(4);
-
-    delete tree;
-    return 0;
+size_t BTree::size() const {
+    return head_ == nullptr ? 0 : (head_->getSize() + 1);
 }
-
+int64_t BTree::sum() const {
+    return head_ == nullptr ? 0 : head_->getSum();
+}

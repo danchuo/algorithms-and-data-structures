@@ -1,3 +1,5 @@
+#include <iostream>
+
 class Node {
 public:
     explicit Node(int);
@@ -17,6 +19,8 @@ public:
     void pushKey(int);
 
     Node *getParent(Node *);
+
+    void printLeaves();
 };
 Node::~Node() {
     delete[] keys;
@@ -73,9 +77,16 @@ void Node::splitHead() {
         (left_node->children)[i] = children[i];
     }
 
-    for (int i = 0; i < degree - 1; ++i) {
-        right_node->keys[i] = keys[i + degree];
-        ++(right_node->size);
+    if (isLeaf()) {
+        for (int i = 0; i < degree; ++i) {
+            right_node->keys[i] = keys[i + degree - 1];
+            ++(right_node->size);
+        }
+    } else {
+        for (int i = 0; i < degree - 1; ++i) {
+            right_node->keys[i] = keys[i + degree];
+            ++(right_node->size);
+        }
     }
 
     for (int i = 0; i < degree; ++i) {
@@ -108,8 +119,8 @@ void Node::splitNode(Node *previous) {
         (left_node->children)[i] = children[i];
     }
 
-    for (int i = 0; i < degree - 1; ++i) {
-        right_node->keys[i] = keys[i + degree];
+    for (int i = 0; i < degree; ++i) {
+        right_node->keys[i] = keys[i + degree - 1];
         ++(right_node->size);
     }
 
@@ -154,7 +165,7 @@ Node *Node::getParent(Node *head) {
     while (current != this) {
         int number_of_child = 0;
 
-        while (number_of_child < current->size && current->keys[number_of_child] < keys[0]) {
+        while (number_of_child < current->size && current->keys[number_of_child] <= keys[0]) {
             ++number_of_child;
         }
 
@@ -163,6 +174,20 @@ Node *Node::getParent(Node *head) {
     }
 
     return previous;
+}
+void Node::printLeaves() {
+    if (isLeaf()) {
+        for (int i = 0; i < size; ++i) {
+            std::cout << keys[i] << ' ';
+        }
+        std::cout << '\n';
+    } else {
+        for (int i = 0; i < 2 * degree; ++i) {
+            if (children[i] != nullptr) {
+                children[i]->printLeaves();
+            }
+        }
+    }
 }
 
 class BPlusTree {
@@ -189,15 +214,19 @@ BPlusTree::~BPlusTree() {
 
 void BPlusTree::insert(int input_key) {
     Node *current = head_;
+    bool is_need_to_split = false;
+
     while (current != nullptr) {
-        if (current->size == 2 * degree_ - 1) {
-            if (current == head_) {
-                head_->splitHead();
-            } else {
-                Node *parent = current->getParent(head_);
-                current->splitNode(parent);
-                delete current;
-                current = parent;
+        if (is_need_to_split) {
+            if (current->size == 2 * degree_ - 1) {
+                if (current == head_) {
+                    head_->splitHead();
+                } else {
+                    Node *parent = current->getParent(head_);
+                    current->splitNode(parent);
+                    delete current;
+                    current = parent;
+                }
             }
         }
 
@@ -210,7 +239,14 @@ void BPlusTree::insert(int input_key) {
 
             current = current->children[number_of_child];
         } else {
-            current->pushKey(input_key);
+            if (current->size == 2 * degree_ - 1) {
+                is_need_to_split = true;
+                current = head_;
+                continue;
+            } else {
+                current->pushKey(input_key);
+                is_need_to_split = false;
+            }
             current = nullptr;
         }
     }
@@ -221,4 +257,7 @@ void BPlusTree::insert(int input_key) {
     }
 }
 void BPlusTree::printLeaves() const {
+    if (head_ != nullptr) {
+        head_->printLeaves();
+    }
 }

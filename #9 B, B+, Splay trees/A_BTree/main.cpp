@@ -226,6 +226,17 @@ BTree::~BTree() {
 void BTree::insert(int input_key) {
     Node *current = head_;
     while (current != nullptr) {
+        if (current->size == 2 * degree_ - 1) {
+            if (current == head_) {
+                head_->splitHead();
+            } else {
+                Node *parent = current->getParent(head_);
+                current->splitNode(parent);
+                delete current;
+                current = parent;
+            }
+        }
+
         if (!current->isLeaf()) {
             int number_of_child = 0;
 
@@ -236,14 +247,6 @@ void BTree::insert(int input_key) {
             current = current->children[number_of_child];
         } else {
             current->pushKey(input_key);
-            Node *previous;
-            while (current != nullptr && current->size == 2 * degree_ - 1 && current != head_) {
-                previous = current->getParent(head_);
-                current->splitNode(previous);
-                delete current;
-                current = previous;
-            }
-
             current = nullptr;
         }
     }
@@ -251,10 +254,6 @@ void BTree::insert(int input_key) {
     if (head_ == nullptr) {
         head_ = new Node(degree_);
         head_->pushKey(input_key);
-    } else {
-        if (head_->size == 2 * degree_ - 1) {
-            head_->splitHead();
-        }
     }
 }
 size_t BTree::size() const {

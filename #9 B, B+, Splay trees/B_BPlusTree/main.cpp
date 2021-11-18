@@ -21,6 +21,8 @@ public:
     Node *getParent(Node *);
 
     void printLeaves();
+
+    bool hasValue(int);
 };
 Node::~Node() {
     delete[] keys;
@@ -40,11 +42,6 @@ Node::Node(int degree) {
 }
 void Node::pushKey(int input_key) {
     if (size < 2 * degree - 1) {
-        for (int i = 0; i < size; ++i) {
-            if (keys[i] == input_key) {
-                return;
-            }
-        }
         if (size > 0) {
             for (int i = 0; i < size; ++i) {
                 keys[size - i] = keys[size - i - 1];
@@ -189,6 +186,15 @@ void Node::printLeaves() {
         }
     }
 }
+bool Node::hasValue(int value) {
+    for (int i = 0; i < size; ++i) {
+        if (keys[i] == value) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 class BPlusTree {
 public:
@@ -239,13 +245,15 @@ void BPlusTree::insert(int input_key) {
 
             current = current->children[number_of_child];
         } else {
-            if (current->size == 2 * degree_ - 1) {
-                is_need_to_split = true;
-                current = head_;
-                continue;
-            } else {
-                current->pushKey(input_key);
-                is_need_to_split = false;
+            if (!current->hasValue(input_key)) {
+                if (current->size == 2 * degree_ - 1) {
+                    is_need_to_split = true;
+                    current = head_;
+                    continue;
+                } else {
+                    current->pushKey(input_key);
+                    is_need_to_split = false;
+                }
             }
             current = nullptr;
         }

@@ -18,6 +18,8 @@ public:
 
     void pushKey(int);
 
+    Node *getParent(Node *);
+
     size_t getSize() const;
 
     int64_t getSum();
@@ -89,7 +91,7 @@ void Node::splitHead() {
     keys[0] = keys[degree - 1];
     size = 1;
 
-    for (int i = 0; i < 2 * degree; ++i) {
+    for (int i = 2; i < 2 * degree; ++i) {
         children[i] = nullptr;
     }
 
@@ -179,6 +181,23 @@ void Node::splitNode(Node *previous) {
         children[i] = nullptr;
     }
 }
+Node *Node::getParent(Node *head) {
+    Node *current = head;
+    Node *previous = nullptr;
+
+    while (current != this) {
+        int number_of_child = 0;
+
+        while (number_of_child < current->size && current->keys[number_of_child] < keys[0]) {
+            ++number_of_child;
+        }
+
+        previous = current;
+        current = current->children[number_of_child];
+    }
+
+    return previous;
+}
 
 class BTree {
 public:
@@ -205,12 +224,7 @@ BTree::~BTree() {
 }
 
 void BTree::insert(int input_key) {
-    if (head_ != nullptr && head_->size == 2 * degree_ - 1) {
-        head_->splitHead();
-    }
-
     Node *current = head_;
-    Node *previous = nullptr;
     while (current != nullptr) {
         if (!current->isLeaf()) {
             int number_of_child = 0;
@@ -219,14 +233,17 @@ void BTree::insert(int input_key) {
                 ++number_of_child;
             }
 
-            previous = current;
             current = current->children[number_of_child];
         } else {
             current->pushKey(input_key);
-            if (current->size == 2 * degree_ - 1 && current != head_) {
+            Node *previous;
+            while (current != nullptr && current->size == 2 * degree_ - 1 && current != head_) {
+                previous = current->getParent(head_);
                 current->splitNode(previous);
                 delete current;
+                current = previous;
             }
+
             current = nullptr;
         }
     }
@@ -234,6 +251,10 @@ void BTree::insert(int input_key) {
     if (head_ == nullptr) {
         head_ = new Node(degree_);
         head_->pushKey(input_key);
+    } else {
+        if (head_->size == 2 * degree_ - 1) {
+            head_->splitHead();
+        }
     }
 }
 size_t BTree::size() const {

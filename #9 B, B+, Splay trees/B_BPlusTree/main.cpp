@@ -207,10 +207,12 @@ public:
     void printLeaves() const;
 
 private:
+    bool is_need_to_split_;
     int degree_;
     Node *head_;
 };
 BPlusTree::BPlusTree(int degree) {
+    is_need_to_split_ = false;
     this->degree_ = degree;
     head_ = nullptr;
 }
@@ -220,39 +222,38 @@ BPlusTree::~BPlusTree() {
 
 void BPlusTree::insert(int input_key) {
     Node *current = head_;
-    bool is_need_to_split = false;
+    Node *parent = nullptr;
 
     while (current != nullptr) {
-        if (is_need_to_split) {
-            if (current->size == 2 * degree_ - 1) {
-                if (current == head_) {
-                    head_->splitHead();
-                } else {
-                    Node *parent = current->getParent(head_);
-                    current->splitNode(parent);
-                    delete current;
-                    current = parent;
-                }
+        if (is_need_to_split_ && current->size == 2 * degree_ - 1) {
+            if (current == head_) {
+                head_->splitHead();
+            } else {
+                current->splitNode(parent);
+                delete current;
+                return insert(input_key);
             }
         }
 
         if (!current->isLeaf()) {
+            if (current->hasValue(input_key)) {
+                return;
+            }
             int number_of_child = 0;
 
             while (number_of_child < current->size && current->keys[number_of_child] < input_key) {
                 ++number_of_child;
             }
-
+            parent = current;
             current = current->children[number_of_child];
         } else {
             if (!current->hasValue(input_key)) {
                 if (current->size == 2 * degree_ - 1) {
-                    is_need_to_split = true;
-                    current = head_;
-                    continue;
+                    is_need_to_split_ = true;
+                    return insert(input_key);
                 } else {
                     current->pushKey(input_key);
-                    is_need_to_split = false;
+                    is_need_to_split_ = false;
                 }
             }
             current = nullptr;

@@ -105,13 +105,13 @@ HashTable<KeyType, ValueType, Func>::~HashTable() {
 
 template <class KeyType, class ValueType, class Func>
 ValueType *HashTable<KeyType, ValueType, Func>::find(KeyType key) {
-    Node<KeyType, ValueType> *node = nodes_[func_(key)];
+    Node<KeyType, ValueType> *node = nodes_[func_(key) % capacity_];
     return node != nullptr ? &(node->value_) : nullptr;
 }
 
 template <class KeyType, class ValueType, class Func>
 void HashTable<KeyType, ValueType, Func>::erase(KeyType key) {
-    auto hash = func_(key);
+    auto hash = func_(key) % capacity_;
     Node<KeyType, ValueType> *node = nodes_[hash];
     if (node != nullptr) {
         nodes_[hash] = nullptr;
@@ -122,7 +122,7 @@ void HashTable<KeyType, ValueType, Func>::erase(KeyType key) {
 
 template <class KeyType, class ValueType, class Func>
 void HashTable<KeyType, ValueType, Func>::insert(KeyType key, ValueType value) {
-    auto hash = func_(key);
+    auto hash = func_(key) % capacity_;
     if (nodes_[hash] == nullptr) {
         nodes_[hash] = new Node<KeyType, ValueType>(key, value);
         ++size_;
@@ -138,11 +138,10 @@ void HashTable<KeyType, ValueType, Func>::insert(KeyType key, ValueType value) {
         }
         if (current_node != nullptr) {
             current_node->next_ = new Node<KeyType, ValueType>(key, value);
-            ++size_;  // ??
+            //  ++size_;  // ??
         }
     }
-
-    if (static_cast<double>(capacity_) / static_cast<double>(size_) > coefficient_) {
+    if (static_cast<double>(size_) / static_cast<double>(capacity_) > coefficient_) {
         rehashing();
     }
 }

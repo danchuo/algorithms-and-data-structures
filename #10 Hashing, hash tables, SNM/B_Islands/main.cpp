@@ -8,10 +8,15 @@ public:
         for (int i = 0; i < number_; ++i) {
             sets_[i] = i;
         }
+        sizes_of_sets_ = new int[number_];
+        for (int i = 0; i < number_; ++i) {
+            sizes_of_sets_[i] = 1;
+        }
     }
 
     ~SNMInt() {
         delete[] sets_;
+        delete[] sizes_of_sets_;
     }
 
     int find(int input_set) {
@@ -21,32 +26,26 @@ public:
         return sets_[input_set] = find(sets_[input_set]);
     }
 
-    void unite(int first, int second) {
+    int unite(int first, int second) {
         first = find(first);
         second = find(second);
         if (first != second) {
             sets_[second] = first;
+            sizes_of_sets_[first] += sizes_of_sets_[second];
+            sizes_of_sets_[second] = 0;
         }
-    }
-
-    bool areEqual() {
-        int first = sets_[0];
-        for (int i = 1; i < number_; ++i) {
-            if (sets_[i] != first) {
-                return false;
-            }
-        }
-        return true;
+        return sizes_of_sets_[first];
     }
 
 private:
+    int *sizes_of_sets_;
     int *sets_;
     int number_;
 };
 
 int calculateMinimumNumberOfBridges(const int number_of_islands, const int number_of_bridges) {
     if (number_of_islands == 1) {
-        return 1;
+        return 0;
     }
 
     SNMInt *islands = new SNMInt(number_of_islands);
@@ -56,10 +55,8 @@ int calculateMinimumNumberOfBridges(const int number_of_islands, const int numbe
 
     for (int i = 0; i < number_of_bridges; ++i) {
         std::cin >> first_island >> second_island;
-
         if (islands->find(first_island) != islands->find(second_island)) {
-            islands->unite(first_island, second_island);
-            if (islands->areEqual()) {
+            if (islands->unite(first_island, second_island) == number_of_islands) {
                 delete islands;
                 return (i + 1);
             }
@@ -67,7 +64,7 @@ int calculateMinimumNumberOfBridges(const int number_of_islands, const int numbe
     }
 
     delete islands;
-    return 0;
+    return number_of_bridges;
 }
 
 int main() {

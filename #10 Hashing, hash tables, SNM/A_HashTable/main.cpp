@@ -18,7 +18,6 @@ Node<KeyType, ValueType>::Node(KeyType key, ValueType value) {
 
 template <class KeyType, class ValueType>
 Node<KeyType, ValueType>::~Node() {
-    delete next_;
 }
 
 template <class KeyType, class ValueType, class Func = std::hash<KeyType>>
@@ -41,7 +40,9 @@ public:
     size_t capacity() const;
 
 private:
-    void rehashing();
+    void rehash();
+    void insertAgain(Node<KeyType, ValueType> *);
+    void deleteNode(Node<KeyType, ValueType> *);
 
     Node<KeyType, ValueType> **nodes_;
     Func func_;
@@ -98,7 +99,7 @@ HashTable<KeyType, ValueType, Func>::HashTable(size_t capacity, double coefficie
 template <class KeyType, class ValueType, class Func>
 HashTable<KeyType, ValueType, Func>::~HashTable() {
     for (int i = 0; i < capacity_; ++i) {
-        delete nodes_[i];
+        deleteNode(nodes_[i]);
     }
     delete[] nodes_;
 }
@@ -106,7 +107,15 @@ HashTable<KeyType, ValueType, Func>::~HashTable() {
 template <class KeyType, class ValueType, class Func>
 ValueType *HashTable<KeyType, ValueType, Func>::find(KeyType key) {
     Node<KeyType, ValueType> *node = nodes_[func_(key) % capacity_];
-    return node != nullptr ? &(node->value_) : nullptr;
+    if (node != nullptr) {
+        while (node != nullptr) {
+            if (node->key_ == key) {
+                return &(node->value_);
+            }
+            node = node->next_;
+        }
+    }
+    return nullptr;
 }
 
 template <class KeyType, class ValueType, class Func>
@@ -115,8 +124,7 @@ void HashTable<KeyType, ValueType, Func>::erase(KeyType key) {
     Node<KeyType, ValueType> *node = nodes_[hash];
     if (node != nullptr) {
         nodes_[hash] = nullptr;
-        delete node;
-        --size_;
+        deleteNode(node);
     }
 }
 
@@ -127,43 +135,58 @@ void HashTable<KeyType, ValueType, Func>::insert(KeyType key, ValueType value) {
         nodes_[hash] = new Node<KeyType, ValueType>(key, value);
         ++size_;
     } else {
-        Node<KeyType, ValueType> *current_node = nodes_[hash];
-        while (current_node->next_ != nullptr) {
+        Node<KeyType, ValueType> *previous_node = nodes_[hash];
+        Node<KeyType, ValueType> *current_node = previous_node->next_;
+
+        if (previous_node->key_ == key) {
+            previous_node->value_ = value;
+            return;
+        }
+
+        while (current_node != nullptr) {
             if (current_node->key_ == key) {
                 current_node->value_ = value;
-                current_node = nullptr;
-                break;
+                return;
             }
+            previous_node = current_node;
             current_node = current_node->next_;
         }
-        if (current_node != nullptr) {
-            current_node->next_ = new Node<KeyType, ValueType>(key, value);
-            //  ++size_;  // ??
+
+        if (previous_node != nullptr) {
+            previous_node->next_ = new Node<KeyType, ValueType>(key, value);
+            ++size_;
         }
     }
+
     if (static_cast<double>(size_) / static_cast<double>(capacity_) > coefficient_) {
-        rehashing();
+        rehash();
     }
 }
 
 template <class KeyType, class ValueType, class Func>
-void HashTable<KeyType, ValueType, Func>::rehashing() {
-    auto new_nodes = new Node<KeyType, ValueType> *[2 * capacity_];
+void HashTable<KeyType, ValueType, Func>::rehash() {
+    capacity_ *= 2;
+    Node<KeyType, ValueType> **old_nodes = nodes_;
+    nodes_ = new Node<KeyType, ValueType> *[capacity_];
 
     for (int i = 0; i < capacity_; ++i) {
-        new_nodes[i + capacity_] = nullptr;
-        new_nodes[i] = nodes_[i];
         nodes_[i] = nullptr;
     }
 
-    capacity_ *= 2;
-    delete[] nodes_;
-    nodes_ = new_nodes;
+    for (int i = 0; i < capacity_ / 2; ++i) {
+        Node<KeyType, ValueType> *current_node = old_nodes[i];
+        if (current_node != nullptr) {
+            insertAgain(current_node);
+            old_nodes[i] = nullptr;
+        }
+    }
+
+    delete[] old_nodes;
 }
 
 template <class KeyType, class ValueType, class Func>
 Node<KeyType, ValueType> &HashTable<KeyType, ValueType, Func>::operator[](uint64_t hash) {
-    if (hash > capacity_) {
+    if (hash >= capacity_) {
         throw std::out_of_range("error");
     }
 
@@ -179,4 +202,36 @@ Node<KeyType, ValueType> &HashTable<KeyType, ValueType, Func>::operator[](uint64
 template <class KeyType, class ValueType, class Func>
 Node<KeyType, ValueType> HashTable<KeyType, ValueType, Func>::at(uint64_t hash) {
     return operator[](hash);
+}
+
+template <class KeyType, class ValueType, class Func>
+void HashTable<KeyType, ValueType, Func>::insertAgain(Node<KeyType, ValueType> *input_node) {
+    auto hash = func_(input_node->key_) % capacity_;
+    Node<KeyType, ValueType> *next_node = input_node->next_;
+    input_node->next_ = nullptr;
+
+    if (nodes_[hash] == nullptr) {
+        nodes_[hash] = input_node;
+    } else {
+        Node<KeyType, ValueType> *current_node = nodes_[hash];
+        while (current_node->next_ != nullptr) {
+            current_node = current_node->next_;
+        }
+
+        current_node->next_ = input_node;
+    }
+
+    if (next_node != nullptr) {
+        insertAgain(next_node);
+    }
+}
+
+template <class KeyType, class ValueType, class Func>
+void HashTable<KeyType, ValueType, Func>::deleteNode(Node<KeyType, ValueType> *node_to_delete) {
+    while (node_to_delete != nullptr) {
+        Node<KeyType, ValueType> *previous_node = node_to_delete;
+        node_to_delete = node_to_delete->next_;
+        delete previous_node;
+        --size_;
+    }
 }

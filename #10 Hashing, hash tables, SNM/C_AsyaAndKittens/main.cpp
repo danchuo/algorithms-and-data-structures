@@ -1,10 +1,11 @@
 #include <iostream>
 
+class DSUList;
 class Node {
 public:
-    explicit Node(int key) {
-        this->key_ = key;
-        left_ = nullptr;
+    explicit Node(DSUList *owner, int value) {
+        owner_ = owner;
+        this->value_ = value;
         right_ = nullptr;
     }
 
@@ -12,48 +13,63 @@ public:
         delete right_;
     }
 
-    void printList() {
-        Node *left_node = this;
-        while (left_node != nullptr) {
-            std::cout << (left_node->key_ + 1) << ' ';
-            left_node = left_node->right_;
-        }
-    }
-
-    Node *findLeft() {
-        Node *left_node = this;
-        while (left_node->left_ != nullptr) {
-            left_node = left_node->left_;
-        }
-        return left_node;
-    }
-
-    void connectWith(Node *other) {
-        Node *left_node = this;
-        Node *right_node = other;
-
-        while (left_node->right_ != nullptr) {
-            left_node = left_node->right_;
-        }
-
-        while (right_node->left_ != nullptr) {
-            right_node = right_node->left_;
-        }
-
-        left_node->right_ = right_node;
-        right_node->left_ = left_node;
-    }
-
-private:
-    int key_;
-    Node *left_;
+    DSUList *owner_;
+    int value_;
     Node *right_;
 };
 
+class DSUList {
+public:
+    explicit DSUList(int key) {
+        head_ = new Node(this, key);
+        tail_ = head_;
+    }
+
+    Node *findLeft() {
+        return tail_;
+    }
+
+    void connectWith(DSUList *other) {
+        DSUList *current = this;
+
+        Node *current_node = other->tail_;
+        while (current_node != nullptr) {
+            current_node->owner_ = current;
+            current_node = current_node->right_;
+        }
+
+        (current->head_)->right_ = other->tail_;
+        current->head_ = other->head_;
+
+        delete other;
+    }
+
+    Node *head_;
+
+private:
+    Node *tail_;
+};
+
+void connectWith(Node *left_node, Node *right_node) {
+    left_node->owner_->connectWith(right_node->owner_);
+}
+
+void printList(Node *left_node) {
+    while (left_node != nullptr) {
+        std::cout << (left_node->value_ + 1) << ' ';
+        left_node = left_node->right_;
+    }
+}
+
 void findOriginalLocation(int number_of_kittens) {
-    Node **kittens = new Node *[number_of_kittens];
+    DSUList **kittens = new DSUList *[number_of_kittens];
+    Node **kitten_nodes = new Node *[number_of_kittens];
     for (int i = 0; i < number_of_kittens; ++i) {
-        kittens[i] = new Node(i);
+        kittens[i] = new DSUList(i);
+    }
+
+    for (int i = 0; i < number_of_kittens; ++i) {
+        kitten_nodes[i] = kittens[i]->head_;
     }
 
     int left;
@@ -63,19 +79,18 @@ void findOriginalLocation(int number_of_kittens) {
         std::cin >> left >> right;
         left -= 1;
         right -= 1;
-        kittens[left]->connectWith(kittens[right]);
+        connectWith(kitten_nodes[left], kitten_nodes[right]);
     }
 
-    Node *left_node = kittens[rand() % number_of_kittens]->findLeft();
+    Node *left_node = kitten_nodes[0]->owner_->findLeft();
 
-    left_node->printList();
+    printList(left_node);
 
-    for (int i = 0; i < number_of_kittens; ++i) {
-        kittens[i] = nullptr;
-    }
+    delete left_node->owner_;
 
     delete[] kittens;
     delete left_node;
+    delete[] kitten_nodes;
 }
 
 int main() {

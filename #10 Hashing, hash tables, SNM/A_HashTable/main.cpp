@@ -121,10 +121,24 @@ ValueType *HashTable<KeyType, ValueType, Func>::find(KeyType key) {
 template <class KeyType, class ValueType, class Func>
 void HashTable<KeyType, ValueType, Func>::erase(KeyType key) {
     auto hash = func_(key) % capacity_;
-    Node<KeyType, ValueType> *node = nodes_[hash];
-    if (node != nullptr) {
-        nodes_[hash] = nullptr;
-        deleteNode(node);
+    Node<KeyType, ValueType> *previous_node = nullptr;
+    Node<KeyType, ValueType> *current_node = nodes_[hash];
+    if (current_node != nullptr) {
+        while (current_node != nullptr) {
+            if (current_node->key_ == key) {
+                if (previous_node != nullptr) {
+                    previous_node->next_ = current_node->next_;
+                } else {
+                    nodes_[hash] = current_node->next_;
+                }
+
+                current_node->next_ = nullptr;
+                deleteNode(current_node);
+                return;
+            }
+            previous_node = current_node;
+            current_node = current_node->next_;
+        }
     }
 }
 

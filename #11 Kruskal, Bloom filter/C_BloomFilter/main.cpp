@@ -44,7 +44,15 @@ BloomFilter::~BloomFilter() {
     delete[] bits_;
 }
 double BloomFilter::getFPRate() const {
-    return 0.22;
+    double result;
+
+    if (number_of_requests_ == 0) {
+        result = 0;
+    } else {
+        result = number_of_false_positive_answers_ / number_of_requests_;
+    }
+
+    return result;
 }
 bool BloomFilter::verify(const std::string &obj) {
     bool result = true;

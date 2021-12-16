@@ -2,18 +2,18 @@
 #include <set>
 
 int findSequence(int amount) {
-    std::multiset<int> multiset;
+    std::set<int> set;
 
     int input_number;
     for (int i = 0; i < amount; ++i) {
         std::cin >> input_number;
-        multiset.insert(input_number);
+        set.insert(input_number);
     }
 
     int max_length = 1;
     int current_length = 1;
-    int previous_number = *multiset.begin();
-    for (auto it = ++multiset.begin(); it != multiset.end(); ++it) {
+    int previous_number = *set.begin();
+    for (auto it = ++set.begin(); it != set.end(); ++it) {
         if (std::abs(*it - previous_number) == 1) {
             ++current_length;
         } else {

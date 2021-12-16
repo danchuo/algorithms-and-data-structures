@@ -1,17 +1,17 @@
 #include <iostream>
-#include <deque>
+#include <queue>
 #include <string>
 
-std::deque<int> *fillQueue(int amount) {
-    auto *deque = new std::deque<int>();
+std::queue<int> *fillQueue(int amount) {
+    auto *queue = new std::queue<int>();
 
     int number;
     for (int i = 0; i < amount; ++i) {
         std::cin >> number;
-        deque->push_back(number);
+        queue->push(number);
     }
 
-    return deque;
+    return queue;
 }
 
 bool isFirstWin(int first_card, int second_card) {
@@ -24,34 +24,35 @@ bool isFirstWin(int first_card, int second_card) {
     }
 }
 
-std::string findWinner(std::deque<int> *first, std::deque<int> *second) {
+std::string findWinner(std::queue<int> *first, std::queue<int> *second) {
     int number_of_turn = 0;
 
     while (number_of_turn < 10e6 && !first->empty() && !second->empty()) {
-        if (isFirstWin(first->front(), second->front())) {
-            first->push_back(second->front());
-            first->push_back(first->front());
-            first->pop_front();
-            second->pop_front();
+        int first_card = first->front();
+        int second_card = second->front();
+        first->pop();
+        second->pop();
+
+        if (isFirstWin(first_card, second_card)) {
+            first->push(first_card);
+            first->push(second_card);
         } else {
-            second->push_back(first->front());
-            second->push_back(second->front());
-            second->pop_front();
-            first->pop_front();
+            second->push(first_card);
+            second->push(second_card);
         }
 
         ++number_of_turn;
-    }
-
-    if (number_of_turn == 10e6) {
-        return "botva";
     }
 
     if (first->empty()) {
         return "second " + std::to_string(number_of_turn);
     }
 
-    return "first " + std::to_string(number_of_turn);
+    if (second->empty()) {
+        return "first " + std::to_string(number_of_turn);
+    }
+
+    return "botva";
 }
 
 int main() {

@@ -13,21 +13,23 @@ std::string createPostfixNotation(std::string input) {
     for (const auto &symbol : input) {
         if (symbol != ' ') {
             if (std::isdigit(symbol)) {
-                if (!std::isdigit(previous_symbol)) {
+                if (!std::isdigit(previous_symbol) && !answer.empty()) {
                     answer += ' ';
                 }
                 answer += symbol;
             } else {
-                if (!stack->empty() && stack->top() == '(') {
+                if (symbol == '(') {
                     stack->push(symbol);
                 } else {
                     if (symbol == ')') {
-                        while (stack->top() != '(') {
+                        while (!stack->empty() && stack->top() != '(') {
                             answer += ' ';
                             answer += stack->top();
                             stack->pop();
                         }
-                        stack->pop();
+                        if (stack->top() == '(') {
+                            stack->pop();
+                        }
                     } else {
                         while (!stack->empty() &&
                                (((symbol == '+' || symbol == '-') &&
@@ -42,8 +44,6 @@ std::string createPostfixNotation(std::string input) {
                     }
                 }
             }
-        } else {
-            previous_symbol = false;
         }
         previous_symbol = symbol;
     }
@@ -65,7 +65,7 @@ int main() {
     std::string sequence;
     std::getline(std::cin, sequence);
 
-    std::cout << createPostfixNotation(sequence);
+    std::cout << createPostfixNotation(sequence) << '\n';
 
     return 0;
 }

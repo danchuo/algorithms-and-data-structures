@@ -1,1 +1,1 @@
-"# algorithms-and-data-structures" 
+Completed assignments for the course "Algorithms and Data Structures", 2021-2022
